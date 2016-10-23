@@ -24,6 +24,8 @@ int main(int argc, const char * argv[]) {
     
     // load log files and map
     filter.init(log_name, map_FilePath);
+    filter.initParticles();
+    filter.run();    
     
     return 0;
 }
