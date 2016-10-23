@@ -8,7 +8,11 @@
 
 #include "Data.hpp"
 
-
+Particle::Particle(float origX, float origY, float origTheta){
+    x = origX;
+    y = origY;
+    theta = origTheta;
+}
 
 void Map::new_hornetsoft_map(Map *map, int size_x, int size_y)
 {

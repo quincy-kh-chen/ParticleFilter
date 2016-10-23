@@ -54,4 +54,10 @@ public:
     void new_hornetsoft_map(Map *map, int size_x, int size_y);
 };
 
+class Particle {
+public:
+    float x, y, theta;
+    Particle();
+    Particle(float origX, float origY, float origTheta);
+};
 #endif /* Data_hpp */

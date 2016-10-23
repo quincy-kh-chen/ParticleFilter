@@ -14,7 +14,7 @@ void MyFilter::init(string log_FilePath, string map_FilePath) {
     readLog(log_FilePath);
     
     // read Map
-    map.read_beesoft_map(map_FilePath);
+    m_Map.read_beesoft_map(map_FilePath);
 }
 void MyFilter::readLog(string log_FilePath) {
     ifstream logFile(log_FilePath);
@@ -30,7 +30,7 @@ void MyFilter::readLog(string log_FilePath) {
             if (line[0] == 'O') {
                 Odometry odom_temp;
                 ss >> odom_temp.x >> odom_temp.y >> odom_temp.theta >> odom_temp.ts;
-                odom.push_back(odom_temp);
+                m_Odom.push_back(odom_temp);
             }
             // laser
             else if (line[0] == 'L'){
@@ -42,7 +42,7 @@ void MyFilter::readLog(string log_FilePath) {
                     ss >> laser_temp.range[i];
                 }
                 
-                laser.push_back(laser_temp);
+                m_Laser.push_back(laser_temp);
             }
             else {
                 cout << "Unexpected data, not odometry nor laser : " << log_FilePath << "\n";
@@ -53,4 +53,18 @@ void MyFilter::readLog(string log_FilePath) {
         cout << "Can't open file :" << log_FilePath << "\n";
     }
     return;
+}
+void MyFilter::updateMotion(int timestamp){
+    std::default_random_engine gen;
+    std::normal_distribution<double> x_normal, y_normal, t_normal;
+    int nparticles = 100;
+    for (int i = 0; i < nparticles; i++){
+        float delta_x = x_normal(gen);
+        float delta_y = y_normal(gen);
+        float delta_t = t_normal(gen);
+        float x = m_Particle[i].x + (m_Laser[timestamp].x - m_Laser[timestamp - 1].x) + delta_x;
+        float y = m_Particle[i].y + (m_Laser[timestamp].y - m_Laser[timestamp - 1].y) + delta_y;
+        float theta = m_Particle[i].theta + (m_Laser[timestamp].theta - m_Laser[timestamp - 1].theta) + delta_t;
+        m_Particle[i] = Particle(x, y, theta);
+    }
 }

@@ -15,6 +15,7 @@
 #include <string>
 #include <fstream>
 #include <vector>
+#include <random>
 #endif /* MyFilter_hpp */
 
 using namespace std;
@@ -23,12 +24,15 @@ class MyFilter {
 public:
     
     // map class
-    Map map;
+    Map m_Map;
     // laser data
-    vector<Laser> laser;
+    vector<Laser> m_Laser;
     // Odometry data
-    vector<Odometry> odom;
+    vector<Odometry> m_Odom;
+    // particles
+    vector<Particle> m_Particle;
     
     void init(string log_FilePath, string map_FilePath);
     void readLog(string log_FilePath); // read log data
+    void updateMotion(int timestamp); // motion model
 };
