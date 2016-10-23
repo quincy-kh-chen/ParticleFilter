@@ -28,6 +28,10 @@ class MyFilter {
 public:
     // parameters
     int m_NumParticles = 10000; // number fo particles
+    float m_WallThres = 0.6; // the threshold for considering as a wall
+    float m_LaserRange = 400; // max laser range
+    float m_nCheck = 10; // number of points along a laser line
+    float m_Resolution = 10.0; // convert from log coordinate to map/image coordinate
     
     // openCV
     cv::Mat m_OrigImg; // original image
