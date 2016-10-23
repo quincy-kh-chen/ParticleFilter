@@ -7,9 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		E3523CD71DBC0E6200C18369 /* Data.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E3523CD61DBC0E6200C18369 /* Data.cpp */; };
-		E3523CD91DBC0E6E00C18369 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E3523CD81DBC0E6E00C18369 /* main.cpp */; };
-		E3523CDC1DBC115A00C18369 /* MyFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E3523CDA1DBC115A00C18369 /* MyFilter.cpp */; };
+		E3523CF51DBD555100C18369 /* Data.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E3523CED1DBD555100C18369 /* Data.cpp */; };
+		E3523CF61DBD555100C18369 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E3523CEF1DBD555100C18369 /* main.cpp */; };
+		E3523CF81DBD555100C18369 /* MyFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E3523CF11DBD555100C18369 /* MyFilter.cpp */; };
+		E3523CF91DBD555100C18369 /* sensorModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E3523CF31DBD555100C18369 /* sensorModel.cpp */; };
+		E3523CFA1DBD555100C18369 /* weight.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E3523CF41DBD555100C18369 /* weight.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -25,11 +27,14 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		E3523CD51DBC0E6200C18369 /* Data.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Data.hpp; sourceTree = "<group>"; };
-		E3523CD61DBC0E6200C18369 /* Data.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Data.cpp; sourceTree = "<group>"; };
-		E3523CD81DBC0E6E00C18369 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
-		E3523CDA1DBC115A00C18369 /* MyFilter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MyFilter.cpp; sourceTree = "<group>"; };
-		E3523CDB1DBC115A00C18369 /* MyFilter.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = MyFilter.hpp; sourceTree = "<group>"; };
+		E3523CEC1DBD555100C18369 /* CMakeLists.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
+		E3523CED1DBD555100C18369 /* Data.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Data.cpp; sourceTree = "<group>"; };
+		E3523CEE1DBD555100C18369 /* Data.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Data.hpp; sourceTree = "<group>"; };
+		E3523CEF1DBD555100C18369 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		E3523CF11DBD555100C18369 /* MyFilter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MyFilter.cpp; sourceTree = "<group>"; };
+		E3523CF21DBD555100C18369 /* MyFilter.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = MyFilter.hpp; sourceTree = "<group>"; };
+		E3523CF31DBD555100C18369 /* sensorModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sensorModel.cpp; sourceTree = "<group>"; };
+		E3523CF41DBD555100C18369 /* weight.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = weight.cpp; sourceTree = "<group>"; };
 		E36F906A1BCA09FC0022EC03 /* Partical_Filter */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Partical_Filter; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -63,11 +68,14 @@
 		E36F906C1BCA09FC0022EC03 /* OpenCV */ = {
 			isa = PBXGroup;
 			children = (
-				E3523CD81DBC0E6E00C18369 /* main.cpp */,
-				E3523CDA1DBC115A00C18369 /* MyFilter.cpp */,
-				E3523CDB1DBC115A00C18369 /* MyFilter.hpp */,
-				E3523CD51DBC0E6200C18369 /* Data.hpp */,
-				E3523CD61DBC0E6200C18369 /* Data.cpp */,
+				E3523CEC1DBD555100C18369 /* CMakeLists.txt */,
+				E3523CED1DBD555100C18369 /* Data.cpp */,
+				E3523CEE1DBD555100C18369 /* Data.hpp */,
+				E3523CEF1DBD555100C18369 /* main.cpp */,
+				E3523CF11DBD555100C18369 /* MyFilter.cpp */,
+				E3523CF21DBD555100C18369 /* MyFilter.hpp */,
+				E3523CF31DBD555100C18369 /* sensorModel.cpp */,
+				E3523CF41DBD555100C18369 /* weight.cpp */,
 			);
 			path = OpenCV;
 			sourceTree = "<group>";
@@ -128,9 +136,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E3523CDC1DBC115A00C18369 /* MyFilter.cpp in Sources */,
-				E3523CD91DBC0E6E00C18369 /* main.cpp in Sources */,
-				E3523CD71DBC0E6200C18369 /* Data.cpp in Sources */,
+				E3523CF61DBD555100C18369 /* main.cpp in Sources */,
+				E3523CF81DBD555100C18369 /* MyFilter.cpp in Sources */,
+				E3523CF51DBD555100C18369 /* Data.cpp in Sources */,
+				E3523CF91DBD555100C18369 /* sensorModel.cpp in Sources */,
+				E3523CFA1DBD555100C18369 /* weight.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

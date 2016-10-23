@@ -14,6 +14,14 @@
 #include <string>
 
 //#include <vector>
+class Robot {
+public:
+    float x;
+    float y;
+    float theta;
+    // timestamp of laser reading
+    float ts;
+};
 
 class Laser {
 public:

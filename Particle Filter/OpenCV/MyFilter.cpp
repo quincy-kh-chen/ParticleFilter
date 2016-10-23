@@ -34,14 +34,15 @@ void MyFilter::readLog(string log_FilePath) {
             }
             // laser
             else if (line[0] == 'L'){
+                Robot robot_temp;
                 Laser laser_temp;
+                ss >> robot_temp.x >> robot_temp.y >> robot_temp.theta;
                 ss >> laser_temp.x >> laser_temp.y >> laser_temp.theta;
-                ss >> laser_temp.x_L >> laser_temp.y_L >> laser_temp.theta_L;
                 
                 for (int i = 0; i < 180; i ++){
                     ss >> laser_temp.range[i];
                 }
-                
+                m_Robot.push_back(robot_temp);
                 m_Laser.push_back(laser_temp);
             }
             else {
@@ -62,9 +63,8 @@ void MyFilter::updateMotion(int timestamp){
         float delta_x = x_normal(gen);
         float delta_y = y_normal(gen);
         float delta_t = t_normal(gen);
-        float x = m_Particle[i].x + (m_Laser[timestamp].x - m_Laser[timestamp - 1].x) + delta_x;
-        float y = m_Particle[i].y + (m_Laser[timestamp].y - m_Laser[timestamp - 1].y) + delta_y;
-        float theta = m_Particle[i].theta + (m_Laser[timestamp].theta - m_Laser[timestamp - 1].theta) + delta_t;
-        m_Particle[i] = Particle(x, y, theta);
+        m_Particle[i].x = m_Particle[i].x + (m_Laser[timestamp].x - m_Laser[timestamp - 1].x) + delta_x;
+        m_Particle[i].y = m_Particle[i].y + (m_Laser[timestamp].y - m_Laser[timestamp - 1].y) + delta_y;
+        m_Particle[i].theta = m_Particle[i].theta + (m_Laser[timestamp].theta - m_Laser[timestamp - 1].theta) + delta_t;
     }
 }

@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 2.8)
+project( MyProject )
+find_package( OpenCV REQUIRED )
+add_executable( MyFilter main.cpp data.cpp MyFilter.cpp	)
+include_directories(${OpenCV_INCLUDE_DIRS})
+target_link_libraries( MyFilter ${OpenCV_LIBS} )

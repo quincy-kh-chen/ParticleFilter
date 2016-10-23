@@ -25,6 +25,8 @@ public:
     
     // map class
     Map m_Map;
+    // robot position from laser data
+    vector<Robot> m_Robot;
     // laser data
     vector<Laser> m_Laser;
     // Odometry data
