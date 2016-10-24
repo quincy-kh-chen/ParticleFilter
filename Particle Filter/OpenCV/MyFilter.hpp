@@ -30,7 +30,7 @@ public:
     int m_NumParticles = 10000; // number fo particles
     float m_WallThres = 0.6; // the threshold for considering as a wall
     float m_LaserRange = 400; // max laser range
-    float m_nCheck = 10; // number of points along a laser line
+    float m_NumCheck = 10; // number of points along a laser line
     float m_Resolution = 10.0; // convert from log coordinate to map/image coordinate
     
     // openCV
@@ -55,5 +55,7 @@ public:
     void display();
     void readLog(string log_FilePath); // read log data
     void updateMotion(int timestamp); // motion model
+    float sensorModel(float x, float mu);
     void run();
+    float calculateWeight(Particle particle, int time);
 };

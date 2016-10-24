@@ -8,6 +8,9 @@
 
 #include "MyFilter.hpp"
 #include <sstream>
+#include <math.h>
+
+#define PI 3.1415926535897932384626433832795 
 
 void MyFilter::init(string log_FilePath, string map_FilePath) {
     // read log data (odometry and laser)
@@ -80,16 +83,95 @@ void MyFilter::readLog(string log_FilePath) {
 }
 void MyFilter::updateMotion(int timestamp){
     std::default_random_engine gen;
-    std::normal_distribution<double> x_normal, y_normal, t_normal;
-//    int nparticles = 100;
+    std::normal_distribution<double> x_normal, y_normal, theta_normal;
     for (int i = 0; i < m_NumParticles; i++){
         float delta_x = x_normal(gen);
         float delta_y = y_normal(gen);
-        float delta_t = t_normal(gen);
-        m_Particle[i].x = m_Particle[i].x + (m_Robot[timestamp].x - m_Robot[timestamp - 1].x) + delta_x;
-        m_Particle[i].y = m_Particle[i].y + (m_Robot[timestamp].y - m_Robot[timestamp - 1].y) + delta_y;
-        m_Particle[i].theta = m_Particle[i].theta + (m_Robot[timestamp].theta - m_Robot[timestamp - 1].theta) + delta_t;
+        float delta_theta = theta_normal(gen);
+        m_Particle[i].x = m_Particle[i].x + (m_Robot[timestamp].x - m_Robot[timestamp - 1].x) / 10.0 + delta_x;
+        m_Particle[i].y = m_Particle[i].y + (m_Robot[timestamp].y - m_Robot[timestamp - 1].y) / 10.0 + delta_y;
+        m_Particle[i].theta = m_Particle[i].theta + (m_Robot[timestamp].theta - m_Robot[timestamp - 1].theta) / 10.0 + delta_theta;
+
+        if (m_Particle[i].x > 800.0)  m_Particle[i].x = 800.0;
+        if (m_Particle[i].y > 800.0)  m_Particle[i].y = 800.0;
+        if (m_Particle[i].x < 0.0)    m_Particle[i].x = 0.0;
+        if (m_Particle[i].y < 0.0)    m_Particle[i].y = 0.0;
     }
+}
+
+float MyFilter::sensorModel(float x, float mu)
+{
+    // Gaussian
+    float sigma = 10;
+    float gaussian = 1 / (sigma * sqrt(2 * PI)) * exp(-(x - mu) * (x - mu) / (2.0 * sigma * sigma));
+
+    // exponential
+    float lambda = -0.0008;
+    float exponential = exp(lambda * x);
+
+    // uniform
+    float uniform = 0.25;
+
+    return gaussian + exponential + uniform;
+
+    // float g_max = 1.0;
+    // float gaussian = g_max*exp(-((mu - x) * (mu - x)) / ((sigma_g * sigma_g) * 2.0));
+
+    // Max range
+    // float end_of_range = g_max/3; //Jane
+    // float max_range = (x > 818.0) ? max_range_prob : 0.0;
+
+    // Uniform
+    // float uniform = g_max * 1.0/4.0;
+
+    // Exponential component
+    // float sigma_e = -0.0008;
+    // float a = g_max*1.0/3.0;
+    // float exponential = a*exp(sigma_e*x);
+
+    // return gaussian + exponential + uniform + max_range;
+}
+
+
+float MyFilter::calculateWeight(Particle particle, int time) {
+    float weight = 1.0;
+
+    for (int angle = -90; angle < 90; angle++) {
+
+        float end_point_x = particle.x + m_LaserRange * cos(particle.theta + angle * PI / 180.0);
+        float end_point_y = particle.y + m_LaserRange * sin(particle.theta + angle * PI / 180.0);
+
+        float dist_x = end_point_x - particle.x;
+        float dist_y = end_point_y - particle.y;
+
+        for (int n = 1; n <= m_NumCheck; n++) {
+
+            float check_x = particle.x + dist_x * n / m_NumCheck;
+            float check_y = particle.y + dist_y * n / m_NumCheck;
+
+            int check_cell_x = round(check_x);
+            int check_cell_y = round(check_y);
+
+            // out of bound or hit unknown area
+            if ((check_x > 800.0 || check_x < 0.0 || check_y > 800.0 || check_y < 0.0) || (m_Map.prob[check_cell_x][check_cell_y] < 0.0)) {
+                
+                float weight = weight * 0.1;
+                break;
+            }
+
+            // hit walls
+            if (m_Map.prob[check_cell_x][check_cell_y] > m_WallThres) {
+
+                float laser_reading = m_Laser[time].range[angle + 90] / 10.0;
+                float wall_dist = sqrt(pow((check_x - particle.x), 2) + pow((check_y - particle.y), 2));
+                float real_wall_prob = sensorModel(laser_reading, wall_dist);
+                weight *= real_wall_prob;
+            }
+        }
+
+    }
+    return weight;
+
 }
 // visulization
 void MyFilter::initImage()

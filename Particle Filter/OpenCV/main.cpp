@@ -19,8 +19,8 @@ int main(int argc, const char * argv[]) {
     std::cout << "16-831 lab2 \n";
     
     MyFilter filter;
-    string log_name = "data/log/robotdata1.log";
-    string map_FilePath = "data/map/wean.dat";
+    string log_name = "../data/log/robotdata1.log";
+    string map_FilePath = "../data/map/wean.dat";
     
     // load log files and map
     filter.init(log_name, map_FilePath);
