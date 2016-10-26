@@ -205,7 +205,7 @@ void MyFilter::resampleParticles(vector<Particle>& particles)
     {
         // Generate random number using gen, distributed according to dist
         int r = (int) dist(generator);
-
+        cout << r << endl;
         // Push the new particle into the vector
         particles.push_back(oldParticles[r]);
     }

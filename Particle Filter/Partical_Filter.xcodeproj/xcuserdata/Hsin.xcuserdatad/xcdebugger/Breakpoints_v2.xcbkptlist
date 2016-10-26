@@ -28,9 +28,7 @@
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "13"
-            endingLineNumber = "13"
-            landmarkName = "MyFilter::init(string log_FilePath, string map_FilePath)"
-            landmarkType = "7">
+            endingLineNumber = "13">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
