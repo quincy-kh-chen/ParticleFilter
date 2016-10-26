@@ -32,7 +32,7 @@ public:
     float m_LaserRange = 400; // max laser range
     float m_NumCheck = 10; // number of points along a laser line
     float m_Resolution = 10.0; // convert from log coordinate to map/image coordinate
-    
+
     // openCV
     cv::Mat m_OrigImg; // original image
     cv::Mat m_Img;
@@ -57,5 +57,6 @@ public:
     void updateMotion(int timestamp); // motion model
     float sensorModel(float x, float mu);
     void run();
-    float calculateWeight(Particle particle, int time);
+    void calculateWeight(vector<Particle>& particles, int time);
+    void resampleParticles(vector<Particle>& particles);
 };

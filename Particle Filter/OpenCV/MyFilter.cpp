@@ -36,7 +36,12 @@ void MyFilter::initParticles() {
     }
 }
 void MyFilter::run() {
-    while(1){
+    // while(1){
+    for (int i = 1; i < m_Robot.size(); i++) {
+        updateMotion(i);
+        calculateWeight(m_Particle, i);
+        resampleParticles(m_Particle);
+        // visualize();
         display();
         cv::waitKey(5);
     }
@@ -133,46 +138,81 @@ float MyFilter::sensorModel(float x, float mu)
 }
 
 
-float MyFilter::calculateWeight(Particle particle, int time) {
-    float weight = 1.0;
+void MyFilter::calculateWeight(vector<Particle>& particles, int time) {
 
-    for (int angle = -90; angle < 90; angle++) {
+    for (int i = 0; i < m_NumParticles; i++){
 
-        float end_point_x = particle.x + m_LaserRange * cos(particle.theta + angle * PI / 180.0);
-        float end_point_y = particle.y + m_LaserRange * sin(particle.theta + angle * PI / 180.0);
+        for (int angle = -90; angle < 90; angle++) {
 
-        float dist_x = end_point_x - particle.x;
-        float dist_y = end_point_y - particle.y;
+            float end_point_x = particles[i].x + m_LaserRange * cos(particles[i].theta + angle * PI / 180.0);
+            float end_point_y = particles[i].y + m_LaserRange * sin(particles[i].theta + angle * PI / 180.0);
 
-        for (int n = 1; n <= m_NumCheck; n++) {
+            float dist_x = end_point_x - particles[i].x;
+            float dist_y = end_point_y - particles[i].y;
 
-            float check_x = particle.x + dist_x * n / m_NumCheck;
-            float check_y = particle.y + dist_y * n / m_NumCheck;
+            for (int n = 1; n <= m_NumCheck; n++) {
 
-            int check_cell_x = round(check_x);
-            int check_cell_y = round(check_y);
+                float check_x = particles[i].x + dist_x * n / m_NumCheck;
+                float check_y = particles[i].y + dist_y * n / m_NumCheck;
 
-            // out of bound or hit unknown area
-            if ((check_x > 800.0 || check_x < 0.0 || check_y > 800.0 || check_y < 0.0) || (m_Map.prob[check_cell_x][check_cell_y] < 0.0)) {
-                
-                float weight = weight * 0.1;
-                break;
+                int check_cell_x = round(check_x);
+                int check_cell_y = round(check_y);
+
+                // out of bound or hit unknown area
+                if ((check_x > 800.0 || check_x < 0.0 || check_y > 800.0 || check_y < 0.0) || (m_Map.prob[check_cell_x][check_cell_y] < 0.0)) {
+                    
+                    particles[i].weight = particles[i].weight * 0.1;
+                    break;
+                }
+
+                // hit walls
+                if (m_Map.prob[check_cell_x][check_cell_y] > m_WallThres) {
+
+                    float laser_reading = m_Laser[time].range[angle + 90] / 10.0;
+                    float wall_dist = sqrt(pow((check_x - particles[i].x), 2) + pow((check_y - particles[i].y), 2));
+                    float real_wall_prob = sensorModel(laser_reading, wall_dist);
+                    particles[i].weight = particles[i].weight * real_wall_prob;
+                }
             }
 
-            // hit walls
-            if (m_Map.prob[check_cell_x][check_cell_y] > m_WallThres) {
-
-                float laser_reading = m_Laser[time].range[angle + 90] / 10.0;
-                float wall_dist = sqrt(pow((check_x - particle.x), 2) + pow((check_y - particle.y), 2));
-                float real_wall_prob = sensorModel(laser_reading, wall_dist);
-                weight *= real_wall_prob;
-            }
         }
-
     }
-    return weight;
 
 }
+
+void MyFilter::resampleParticles(vector<Particle>& particles)
+{
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    std::default_random_engine generator(seed);
+  // Set up distribution
+    std::vector<int> intervals;
+    std::vector<float> weights;
+    
+    for (int p = 0; p <= particles.size(); p++) {
+        weights.push_back(particles[p].weight);
+        intervals.push_back(p);
+}
+
+    std::piecewise_constant_distribution<> dist(begin(intervals),
+                                                end(intervals),
+                                                begin(weights));
+
+  // Copy the current particles and clear the vector
+    vector<Particle> oldParticles = particles;
+    particles.clear();
+
+    for (int i = 0; i < m_NumParticles; ++i)
+    {
+        // Generate random number using gen, distributed according to dist
+        int r = (int) dist(generator);
+
+        // Push the new particle into the vector
+        particles.push_back(oldParticles[r]);
+    }
+
+    return;
+}
+
 // visulization
 void MyFilter::initImage()
 {

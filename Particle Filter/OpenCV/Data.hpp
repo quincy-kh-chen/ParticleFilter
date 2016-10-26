@@ -65,6 +65,7 @@ public:
 class Particle {
 public:
     float x, y, theta;
+    float weight;
     Particle();
     Particle(float origX, float origY, float origTheta);
 };

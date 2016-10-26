@@ -12,6 +12,7 @@ Particle::Particle(float origX, float origY, float origTheta){
     x = origX;
     y = origY;
     theta = origTheta;
+    weight = 1;
 }
 
 void Map::new_hornetsoft_map(Map *map, int size_x, int size_y)
