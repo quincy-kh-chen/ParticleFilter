@@ -41,7 +41,7 @@ void MyFilter::run() {
         cout << i << endl;
         updateMotion(i);
         calculateWeight(m_Particle, i);
-//        resampleParticles(m_Particle);
+        resampleParticles(m_Particle);
 //        resample_LowVar();
         // visualize();
         display();
@@ -203,9 +203,9 @@ void MyFilter::calculateWeight(vector<Particle>& particles, int time) {
                 int check_cell_y = round(check_y);
 
                 // out of bound or hit unknown area
-                if ((check_cell_x >= 800 || check_cell_x < 0 || check_cell_y >= 800 || check_cell_y < 0) || (m_Map.prob[check_cell_x][check_cell_y] < 0.0)) {
+                if ((check_cell_x >= 800 || check_cell_x < 0 || check_cell_y >= 800 || check_cell_y < 0) || (m_Map.prob[check_cell_x][check_cell_y] < 0.35)) {
 //                    cout << "particles[" << i << "].weight = " << particles[i].weight << endl;
-                   particles[i].weight += log(0.1);
+                   particles[i].weight += log(0.8);
                     break;
                 } else {
 //                    cout << "in range!" << endl;
@@ -217,7 +217,8 @@ void MyFilter::calculateWeight(vector<Particle>& particles, int time) {
                     float laser_reading = m_Laser[time].range[angle + 90] / 10.0;
 //                    float wall_dist = sqrt(pow((check_x - particles[i].x), 2) + pow((check_y - particles[i].y), 2));
                     float wall_dist = sqrt(pow((check_x - start_point_x), 2) + pow((check_y - start_point_y), 2));
-                    float real_wall_prob = pow(sensorModel(laser_reading, wall_dist), 0.2);
+//                    float real_wall_prob = pow(sensorModel(laser_reading, wall_dist), 0.1);
+                    float real_wall_prob = sensorModel(laser_reading, wall_dist)* 10;
 //                    cout << "real_wall_prob = " << real_wall_prob << endl;
                     // particles[i].weight = particles[i].weight * 1.1 * real_wall_prob;
 //                    m_Particle[i].weight += log(real_wall_prob);
@@ -239,10 +240,10 @@ void MyFilter::resampleParticles(vector<Particle>& particles)
     std::vector<int> intervals;
     std::vector<float> weights;
     
-    for (int p = 0; p <= particles.size(); p++) {
+    for (int p = 0; p <= particles.size(); ++p) {
         weights.push_back(particles[p].weight);
         intervals.push_back(p);
-}
+    }
 
     std::piecewise_constant_distribution<> dist(begin(intervals),
                                                 end(intervals),
@@ -256,9 +257,12 @@ void MyFilter::resampleParticles(vector<Particle>& particles)
     {
         // Generate random number using gen, distributed according to dist
         int r = (int) dist(generator);
-        cout << r << endl;
-        // Push the new particle into the vector
-        particles.push_back(oldParticles[r]);
+        if(r < 0 || r >= oldParticles.size()) {
+//            cout << r << endl;
+        } else {
+            // Push the new particle into the vector
+            particles.push_back(oldParticles[r]);
+        }
     }
 
     return;
@@ -271,7 +275,8 @@ void MyFilter::resample_LowVar() {
     
     vector<Particle> copy = m_Particle;
     m_Particle.clear();
-    for(int ii = 0; ii < copy.size(); ++ii) {
+//    for(int ii = 0; ii < copy.size(); ++ii) {
+    for(int ii = 0; ii < m_NumParticles; ++ii) {
         //        Particle newParticle;
         float newWeight = r + float(ii)/copy.size();
         while(curWeight < newWeight) {
@@ -282,8 +287,8 @@ void MyFilter::resample_LowVar() {
             curWeight += copy[idx].weight;
         }
         //        newParticle = m_Particle[idx];
-//        cout << idx << endl;
-        cout << copy.size() << endl;
+        cout << idx << endl;
+//        cout << copy.size() << endl;
         m_Particle.push_back(copy[idx]);
     }
 }
@@ -306,7 +311,8 @@ void MyFilter::display() {
     m_Img = m_OrigImg.clone();
     
     // draw particles
-    for(int ii = 0; ii < m_Particle.size(); ++ii) {
+//    for(int ii = 0; ii < m_Particle.size(); ++ii) {
+    for(int ii = 0; ii < m_NumParticles; ++ii) {
         cv::Point3f RED(0, 0, 255);
         
 //        int row = m_OrigImg.rows - m_Particle[ii].y;
@@ -318,10 +324,10 @@ void MyFilter::display() {
         if(col >= 0 && col < 800 & row >= 0 && row < 800) {
             m_Img.at<cv::Point3f>(row, col) = RED;
         } else {
-//            cout << "row = " << row << ", col = " << col << endl;
+            cout << "row = " << row << ", col = " << col << endl;
         }
     }
-    cout << "number of particles = " << m_Particle.size() << endl;
+//    cout << "number of particles = " << m_Particle.size() << endl;
 //    cv::cvtColor(m_Img, m_Img, cv::COLOR_GRAY2BGR);
     cv::imshow(m_WindowName ,m_Img);
 
