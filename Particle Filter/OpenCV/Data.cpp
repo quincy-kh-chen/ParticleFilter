@@ -7,12 +7,13 @@
 //
 
 #include "Data.hpp"
+#include <iostream>
 
 Particle::Particle(float origX, float origY, float origTheta){
     x = origX;
     y = origY;
     theta = origTheta;
-    weight = 1;
+    weight = 1.0;
 }
 
 void Map::new_hornetsoft_map(Map *map, int size_x, int size_y)
@@ -23,7 +24,7 @@ void Map::new_hornetsoft_map(Map *map, int size_x, int size_y)
     for(i = 0; i < size_x; i++)
         map->cells[i] = (float *)calloc(size_y, sizeof(float));
 }
-int Map::read_beesoft_map(std::string log_FilePath)
+int Map::read_beesoft_map(std::string log_FilePath, std::vector<Particle>& m_Particle)
 {
     const char *mapName = log_FilePath.c_str();
     int x, y, count;
@@ -87,6 +88,11 @@ int Map::read_beesoft_map(std::string log_FilePath)
                 else if(y > this->max_y)
                     this->max_y = y;
                 this->prob[x][y] = 1 - temp;
+                if (temp > 0.99) {
+//                    std::cout << 1 - temp << std::endl;
+                    Particle location(x, y, 0.0);
+                    m_Particle.push_back(location);
+                }
             }
         }
     fprintf(stderr, "\r# Reading ... (%.2f%%)\n\n",

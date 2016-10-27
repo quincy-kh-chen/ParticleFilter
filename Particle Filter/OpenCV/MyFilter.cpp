@@ -17,7 +17,7 @@ void MyFilter::init(string log_FilePath, string map_FilePath) {
     readLog(log_FilePath);
     
     // read Map
-    m_Map.read_beesoft_map(map_FilePath);
+    m_Map.read_beesoft_map(map_FilePath, m_Particle);
     
     // intial cv::Mat form the map read above
     cv::namedWindow(m_WindowName);
@@ -38,9 +38,11 @@ void MyFilter::initParticles() {
 void MyFilter::run() {
     // while(1){
     for (int i = 1; i < m_Robot.size(); i++) {
+        cout << i << endl;
         updateMotion(i);
         calculateWeight(m_Particle, i);
-        resampleParticles(m_Particle);
+//        resampleParticles(m_Particle);
+        resample_LowVar();
         // visualize();
         display();
         cv::waitKey(5);
@@ -55,26 +57,39 @@ void MyFilter::readLog(string log_FilePath) {
         while ( getline (logFile,line) ) {
 
             istringstream ss(line);
-            float value;
-            ss >> value;
+            string c;
+            ss >> c;
+//            cout << value << endl;
             // odom
             if (line[0] == 'O') {
                 Odometry odom_temp;
                 ss >> odom_temp.x >> odom_temp.y >> odom_temp.theta >> odom_temp.ts;
                 m_Odom.push_back(odom_temp);
+                
+//                cout << "robot x = " << m_Robot.back().x << endl;
             }
             // laser
             else if (line[0] == 'L'){
                 Robot robot_temp;
                 Laser laser_temp;
-                ss >> robot_temp.x >> robot_temp.y >> robot_temp.theta;
-                ss >> laser_temp.x >> laser_temp.y >> laser_temp.theta;
+//                ss >> robot_temp.x >> robot_temp.y >> robot_temp.theta;
+//                ss >> laser_temp.x >> laser_temp.y >> laser_temp.theta;
+                ss >> c; robot_temp.x = stof(c) ;
+                ss >> c; robot_temp.y = stof(c);
+                ss >> c; robot_temp.theta = stof(c);
                 
+                ss >> c; laser_temp.x = stof(c);
+                ss >> c; laser_temp.y = stof(c);
+                ss >> c; laser_temp.theta = stof(c);
                 for (int i = 0; i < 180; i ++){
-                    ss >> laser_temp.range[i];
+                    ss >> c;
+                    laser_temp.range[i] = stof(c);
                 }
                 m_Robot.push_back(robot_temp);
                 m_Laser.push_back(laser_temp);
+                
+                cout << "robot :" << m_Robot.back().x << ", "<< m_Robot.back().y << ", "<< m_Robot.back().theta << endl;
+
             }
             else {
                 cout << "Unexpected data, not odometry nor laser : " << log_FilePath << "\n";
@@ -101,81 +116,117 @@ void MyFilter::updateMotion(int timestamp){
         if (m_Particle[i].y > 800.0)  m_Particle[i].y = 800.0;
         if (m_Particle[i].x < 0.0)    m_Particle[i].x = 0.0;
         if (m_Particle[i].y < 0.0)    m_Particle[i].y = 0.0;
+//        cout << "x = " << m_Particle[i].x << ", y = " << m_Particle[i].y << endl;
     }
 }
 
 float MyFilter::sensorModel(float x, float mu)
 {
     // Gaussian
-    float sigma = 10;
-    float gaussian = 1 / (sigma * sqrt(2 * PI)) * exp(-(x - mu) * (x - mu) / (2.0 * sigma * sigma));
+    // float sigma = 10;
+    // float gaussian = 1 / (sigma * sqrt(2 * PI)) * exp(-(x - mu) * (x - mu) / (2.0 * sigma * sigma));
 
-    // exponential
-    float lambda = -0.0008;
-    float exponential = exp(lambda * x);
+    // // exponential
+    // float lambda = -0.0008;
+    // float exponential = exp(lambda * x);
 
-    // uniform
-    float uniform = 0.25;
+    // // uniform
+    // float uniform = 0.25;
 
-    return gaussian + exponential + uniform;
+    // return gaussian + exponential + uniform;
+    // Gaussian component
+    float sigma_g = 10;
 
-    // float g_max = 1.0;
-    // float gaussian = g_max*exp(-((mu - x) * (mu - x)) / ((sigma_g * sigma_g) * 2.0));
+    float g_max = 1.0;
+    float gaussian = g_max*exp(-((mu - x) * (mu - x)) / ((sigma_g * sigma_g) * 2.0));
 
-    // Max range
-    // float end_of_range = g_max/3; //Jane
-    // float max_range = (x > 818.0) ? max_range_prob : 0.0;
+    // Max range component
+    float max_range_prob = g_max/3;
+    float max_range = (x > 818.0) ? max_range_prob : 0.0;
 
-    // Uniform
-    // float uniform = g_max * 1.0/4.0;
+    // Uniform component
+    float uniform = g_max * 1.0/4.0;
 
     // Exponential component
-    // float sigma_e = -0.0008;
-    // float a = g_max*1.0/3.0;
-    // float exponential = a*exp(sigma_e*x);
+    float sigma_e = -0.0008;
+    float a = g_max*1.0/3.0;
+    float exponential = a*exp(sigma_e*x);
 
-    // return gaussian + exponential + uniform + max_range;
+    return gaussian + exponential + uniform + max_range;
 }
-
+const pair<float, float>& transform(const float& x, const float& y)  {
+    pair<float, float> p;
+    p.first = (800 - y);
+    p.second = x;
+    return p;
+}
 
 void MyFilter::calculateWeight(vector<Particle>& particles, int time) {
 
     for (int i = 0; i < m_NumParticles; i++){
+//        cout << "particles[" << i << "].weight = " << particles[i].weight << endl;
+        // pair<float, float> p = transform(particles[i].x, particles[i].y);
+        // float end_point_orig_x = p.first;
+        // float end_point_orig_y = p.second;
+        pair<float, float> ps = transform(particles[i].x, particles[i].y);
+        float start_point_x = ps.first;
+        float start_point_y = ps.second;
+//        cout << "particles[" << i << "].weight = " << particles[i].weight << endl;
+        for (int angle = -90; angle < 90; angle+= 5) {
+        
+            float x_Laser = particles[i].x + m_LaserRange * cos(particles[i].theta + angle * PI / 180.0);
+            float y_Laser = particles[i].y + m_LaserRange * sin(particles[i].theta + angle * PI / 180.0);
 
-        for (int angle = -90; angle < 90; angle++) {
+            pair<float, float> p = transform(x_Laser, y_Laser);
+            float end_point_x = p.first;
+            float end_point_y = p.second;
 
-            float end_point_x = particles[i].x + m_LaserRange * cos(particles[i].theta + angle * PI / 180.0);
-            float end_point_y = particles[i].y + m_LaserRange * sin(particles[i].theta + angle * PI / 180.0);
+           // float end_point_x = particles[i].x + m_LaserRange * cos(particles[i].theta + angle * PI / 180.0);
+           // float end_point_y = particles[i].y + m_LaserRange * sin(particles[i].theta + angle * PI / 180.0);
 
-            float dist_x = end_point_x - particles[i].x;
-            float dist_y = end_point_y - particles[i].y;
-
+            // float end_point_x = end_point_orig_x + float(m_LaserRange) * cos(particles[i].theta + angle * PI / 180.0);
+            // float end_point_y = end_point_orig_y + float(m_LaserRange) * sin(particles[i].theta + angle * PI / 180.0);
+            
+            // float dist_x = end_point_x - particles[i].x;
+            // float dist_y = end_point_y - particles[i].y;
+            float dist_x = end_point_x - start_point_x;
+            float dist_y = end_point_y - start_point_y;
+            if(angle == -70) {
+//                cout << "particles[" << i << "].weight = " << particles[i].weight << endl;
+            }
             for (int n = 1; n <= m_NumCheck; n++) {
 
-                float check_x = particles[i].x + dist_x * n / m_NumCheck;
-                float check_y = particles[i].y + dist_y * n / m_NumCheck;
+                float check_x = start_point_x + dist_x * n / m_NumCheck;
+                float check_y = start_point_y + dist_y * n / m_NumCheck;
 
                 int check_cell_x = round(check_x);
                 int check_cell_y = round(check_y);
 
                 // out of bound or hit unknown area
-                if ((check_x > 800.0 || check_x < 0.0 || check_y > 800.0 || check_y < 0.0) || (m_Map.prob[check_cell_x][check_cell_y] < 0.0)) {
-                    
-                    particles[i].weight = particles[i].weight * 0.1;
+                if ((check_cell_x >= 800 || check_cell_x < 0 || check_cell_y >= 800 || check_cell_y < 0) || (m_Map.prob[check_cell_x][check_cell_y] < 0.0)) {
+//                    cout << "particles[" << i << "].weight = " << particles[i].weight << endl;
+                   particles[i].weight += log(0.1);
                     break;
+                } else {
+//                    cout << "in range!" << endl;
                 }
-
+//                cout << "particles[" << i << "].weight = " << particles[i].weight << endl;
                 // hit walls
-                if (m_Map.prob[check_cell_x][check_cell_y] > m_WallThres) {
+                if (m_Map.prob[check_cell_x][check_cell_y] < m_WallThres) {
 
                     float laser_reading = m_Laser[time].range[angle + 90] / 10.0;
-                    float wall_dist = sqrt(pow((check_x - particles[i].x), 2) + pow((check_y - particles[i].y), 2));
+//                    float wall_dist = sqrt(pow((check_x - particles[i].x), 2) + pow((check_y - particles[i].y), 2));
+                    float wall_dist = sqrt(pow((check_x - start_point_x), 2) + pow((check_y - start_point_y), 2));
                     float real_wall_prob = sensorModel(laser_reading, wall_dist);
-                    particles[i].weight = particles[i].weight * real_wall_prob;
+//                    cout << "real_wall_prob = " << real_wall_prob << endl;
+                    // particles[i].weight = particles[i].weight * 1.1 * real_wall_prob;
+                    m_Particle[i].weight += log(real_wall_prob);
+
                 }
             }
-
         }
+        m_Particle[i].weight = exp(m_Particle[i].weight);
+//        cout << "particles[" << i << "].weight = " << particles[i].weight << endl;
     }
 
 }
@@ -212,7 +263,30 @@ void MyFilter::resampleParticles(vector<Particle>& particles)
 
     return;
 }
-
+void MyFilter::resample_LowVar() {
+    float temp = (float)rand() / (float)RAND_MAX;
+    float r =  temp * ((float)1/m_Particle.size());
+    float curWeight =  m_Particle[0].weight;
+    int idx = 0;
+    
+    vector<Particle> copy = m_Particle;
+    m_Particle.clear();
+    for(int ii = 0; ii < copy.size(); ++ii) {
+        //        Particle newParticle;
+        float newWeight = r + float(ii)/copy.size();
+        while(curWeight < newWeight) {
+            ++idx;
+            if(idx >= copy.size()) {
+                cout << idx << " ERROR" << endl;
+            }
+            curWeight += copy[idx].weight;
+        }
+        //        newParticle = m_Particle[idx];
+//        cout << idx << endl;
+        cout << copy.size() << endl;
+        m_Particle.push_back(copy[idx]);
+    }
+}
 // visulization
 void MyFilter::initImage()
 {
@@ -234,9 +308,18 @@ void MyFilter::display() {
     // draw particles
     for(int ii = 0; ii < m_Particle.size(); ++ii) {
         cv::Point3f RED(0, 0, 255);
-        int row = m_Particle[ii].y;
-        int col = m_Particle[ii].x;
-        m_OrigImg.at<cv::Point3f>(m_OrigImg.rows - row, col) = RED;
+        
+//        int row = m_OrigImg.rows - m_Particle[ii].y;
+//        int col = m_Particle[ii].x;
+        pair<float, float> p = transform(m_Particle[ii].x, m_Particle[ii].y);
+        int row = p.first;
+        int col = p.second;
+//        cout << row << " " << col << endl;
+        if(col >= 0 && col < 800 & row >= 0 && row < 800) {
+            m_Img.at<cv::Point3f>(row, col) = RED;
+        } else {
+//            cout << "row = " << row << ", col = " << col << endl;
+        }
     }
     cout << "number of particles = " << m_Particle.size() << endl;
 //    cv::cvtColor(m_Img, m_Img, cv::COLOR_GRAY2BGR);

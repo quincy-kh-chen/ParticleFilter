@@ -23,10 +23,11 @@ int main(int argc, const char * argv[]) {
 //    string map_FilePath = "../data/map/wean.dat";
     string log_name = "data/log/robotdata1.log";
     string map_FilePath = "data/map/wean.dat";
+    
     // load log files and map
     filter.init(log_name, map_FilePath);
-    filter.initParticles();
+//    filter.initParticles();
     filter.run();    
-    
-    return 0;
+//    cout << 1e-2 << endl;
+     return 0;
 }

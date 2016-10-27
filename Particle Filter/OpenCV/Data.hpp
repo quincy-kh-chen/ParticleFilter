@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
+#include <vector>
 
 //#include <vector>
 class Robot {
@@ -47,6 +48,14 @@ public:
     float ts;
 };
 
+class Particle {
+public:
+    float x, y, theta;
+    float weight;
+    Particle();
+    Particle(float origX, float origY, float origTheta);
+};
+
 class Map {
 public:
     int min_x, max_x;
@@ -58,15 +67,9 @@ public:
     float **cells;
     
     // function
-    int read_beesoft_map(std::string log_FilePath);
+    int read_beesoft_map(std::string log_FilePath, std::vector<Particle> & m_Particle);
     void new_hornetsoft_map(Map *map, int size_x, int size_y);
 };
 
-class Particle {
-public:
-    float x, y, theta;
-    float weight;
-    Particle();
-    Particle(float origX, float origY, float origTheta);
-};
+
 #endif /* Data_hpp */
