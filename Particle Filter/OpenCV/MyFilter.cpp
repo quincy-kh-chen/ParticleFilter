@@ -42,7 +42,7 @@ void MyFilter::run() {
         updateMotion(i);
         calculateWeight(m_Particle, i);
 //        resampleParticles(m_Particle);
-        resample_LowVar();
+//        resample_LowVar();
         // visualize();
         display();
         cv::waitKey(5);
@@ -174,8 +174,8 @@ void MyFilter::calculateWeight(vector<Particle>& particles, int time) {
 //        cout << "particles[" << i << "].weight = " << particles[i].weight << endl;
         for (int angle = -90; angle < 90; angle+= 5) {
         
-            float x_Laser = particles[i].x + m_LaserRange * cos(particles[i].theta + angle * PI / 180.0);
-            float y_Laser = particles[i].y + m_LaserRange * sin(particles[i].theta + angle * PI / 180.0);
+            float x_Laser = particles[i].x + m_LaserRange * cos(particles[i].theta + angle * PI / 180.0) / 10.0;
+            float y_Laser = particles[i].y + m_LaserRange * sin(particles[i].theta + angle * PI / 180.0) / 10.0;
 
             pair<float, float> p = transform(x_Laser, y_Laser);
             float end_point_x = p.first;
@@ -196,8 +196,8 @@ void MyFilter::calculateWeight(vector<Particle>& particles, int time) {
             }
             for (int n = 1; n <= m_NumCheck; n++) {
 
-                float check_x = start_point_x + dist_x * n / m_NumCheck;
-                float check_y = start_point_y + dist_y * n / m_NumCheck;
+                float check_x = start_point_x + dist_x * float(n) / m_NumCheck;
+                float check_y = start_point_y + dist_y * float(n) / m_NumCheck;
 
                 int check_cell_x = round(check_x);
                 int check_cell_y = round(check_y);
@@ -217,10 +217,10 @@ void MyFilter::calculateWeight(vector<Particle>& particles, int time) {
                     float laser_reading = m_Laser[time].range[angle + 90] / 10.0;
 //                    float wall_dist = sqrt(pow((check_x - particles[i].x), 2) + pow((check_y - particles[i].y), 2));
                     float wall_dist = sqrt(pow((check_x - start_point_x), 2) + pow((check_y - start_point_y), 2));
-                    float real_wall_prob = sensorModel(laser_reading, wall_dist);
+                    float real_wall_prob = pow(sensorModel(laser_reading, wall_dist), 0.2);
 //                    cout << "real_wall_prob = " << real_wall_prob << endl;
                     // particles[i].weight = particles[i].weight * 1.1 * real_wall_prob;
-                    m_Particle[i].weight += log(real_wall_prob);
+//                    m_Particle[i].weight += log(real_wall_prob);
 
                 }
             }
